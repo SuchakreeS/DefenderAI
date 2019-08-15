@@ -7,6 +7,7 @@ namespace Defender
 {
     public class DefenderAcademy : Academy
     {
-        
+        [SerializeField] private float m_AgentMoveSpeed;
+        public float moveSpeed => m_AgentMoveSpeed;
     }
 }
