@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 using MLAgents;
+using UniRx;
+using System;
 
 namespace Defender
 {
@@ -13,15 +15,28 @@ namespace Defender
             B
         }
         [SerializeField] TeamType m_Team;
-        private DefenderAcademy _DefenderAcademy;
-        private Rigidbody _Rb;
+        [SerializeField] GameObject m_ShieldObject;
+        [SerializeField] Transform m_BulletTransform;
+        [SerializeField] DefenderArena m_DefenderArena;
+        private DefenderAcademy academy;
+        private DefenderArena arena;
+        private Rigidbody rb;
+        private bool isReload;
+        private bool isShield;
+        private bool isSwitchShield;
+        private IDisposable reloadWeaponDisposable;
+        private IDisposable switchShieldDisposable;
         
         // -------------------------------------------------------------------------------
         // Override Function
         public override void InitializeAgent()
         {
-            _DefenderAcademy = FindObjectOfType<DefenderAcademy>();
-            _Rb = transform.GetComponent<Rigidbody>();
+            academy = FindObjectOfType<DefenderAcademy>();
+            arena = m_DefenderArena;
+            rb = transform.GetComponent<Rigidbody>();
+            isReload = false;
+            isShield = m_ShieldObject.gameObject.activeSelf;
+            isSwitchShield = false;
         }
         public override void CollectObservations()
         {
@@ -30,22 +45,46 @@ namespace Defender
         
         public override void AgentAction(float[] vectorAction, string textAction)
         {
-            Vector3 direction = Vector3.zero;
-            int action = Mathf.FloorToInt(vectorAction[0]);
-            switch(action)
+            if(arena.isPlaying)
             {
-                case 0:
-                    // do notting 
-                    break;
-                case 1:
-                    direction = transform.right * 1;
-                    break;
-                case 2:
-                    direction = transform.right * -1;
-                    break;
+                ActionAgent(vectorAction);
+            }
+        }
+        private void ActionAgent(float[] act)
+        {
+            Vector3 direction = Vector3.zero;
+            int moveAction = Mathf.FloorToInt(act[0]);
+            int battleAction = Mathf.FloorToInt(act[1]);
+
+            // Move action
+            if(moveAction == 1)
+                direction = transform.right * 1;
+            else if (moveAction == 2)
+                direction = transform.right * -1;
+            
+            // Battle action
+            if(battleAction == 1 && !isSwitchShield)
+            {
+                isSwitchShield = true;
+                isShield = !isShield;
+                m_ShieldObject.gameObject.SetActive(isShield);
+                
+                switchShieldDisposable?.Dispose();
+                switchShieldDisposable = Observable.Timer(TimeSpan.FromSeconds(0.2)).Subscribe(_ => isSwitchShield = false);
+            }
+            else if (battleAction == 2 && !isReload && !isShield)
+            {
+                isReload = true;
+                var bulletRb = m_BulletTransform.gameObject.GetComponent<Rigidbody>();
+                bulletRb.AddForce(m_BulletTransform.forward * 500f);
+                reloadWeaponDisposable?.Dispose();
+                reloadWeaponDisposable = Observable.Timer(TimeSpan.FromSeconds(2)).Subscribe(_ => isReload = false);
             }
 
-            _Rb.AddForce(direction * _DefenderAcademy.moveSpeed, ForceMode.VelocityChange);
+            
+            // Final action
+            rb.AddForce(direction * academy.moveSpeed, ForceMode.VelocityChange);
+            rb.velocity = Vector3.ClampMagnitude(rb.velocity, academy.maxMoveSpeed);
         }
 
         public override void AgentReset()
@@ -55,13 +94,25 @@ namespace Defender
 
         // --------------------------------------------------------------------------------
 
-        void OnCollisionEnter(Collision c)
+        private void OnCollisionEnter(Collision c)
         {
             if (c.gameObject.CompareTag("Wall"))
             {
-                _Rb.velocity = Vector3.zero;
+                rb.velocity = Vector3.zero;
             }
             Debug.Log("Hit the wall");
+        }
+        private UniRx.IObservable<Unit> OnSwitchShield()
+        {
+            return Observable.Create<Unit>
+            (
+                _observer => 
+                {
+                    IDisposable dis = null;
+                    _observer.OnNext(Unit.Default);
+                    return Disposable.Create(() => dis.Dispose());
+                }
+            );
         }
     }
 }
