@@ -7,16 +7,15 @@ using System;
 
 namespace Defender
 {
+    
+
     public class DefenderAgent : Agent
     {
-        public enum TeamType
-        {
-            A,
-            B
-        }
+        
         [SerializeField] TeamType m_Team;
         [SerializeField] GameObject m_ShieldObject;
         [SerializeField] Transform m_BulletTransform;
+        [SerializeField] GameObject m_BulletStack;
         [SerializeField] DefenderArena m_DefenderArena;
         private DefenderAcademy academy;
         private DefenderArena arena;
@@ -24,6 +23,7 @@ namespace Defender
         private bool isReload;
         private bool isShield;
         private bool isSwitchShield;
+        private WeaponController weapon;
         private IDisposable reloadWeaponDisposable;
         private IDisposable switchShieldDisposable;
         
@@ -37,6 +37,7 @@ namespace Defender
             isReload = false;
             isShield = m_ShieldObject.gameObject.activeSelf;
             isSwitchShield = false;
+            weapon = gameObject.GetComponent<WeaponController>();
         }
         public override void CollectObservations()
         {
@@ -72,13 +73,9 @@ namespace Defender
                 switchShieldDisposable?.Dispose();
                 switchShieldDisposable = Observable.Timer(TimeSpan.FromSeconds(0.2)).Subscribe(_ => isSwitchShield = false);
             }
-            else if (battleAction == 2 && !isReload && !isShield)
+            else if (battleAction == 2 && !isShield)
             {
-                isReload = true;
-                var bulletRb = m_BulletTransform.gameObject.GetComponent<Rigidbody>();
-                bulletRb.AddForce(m_BulletTransform.forward * 500f);
-                reloadWeaponDisposable?.Dispose();
-                reloadWeaponDisposable = Observable.Timer(TimeSpan.FromSeconds(2)).Subscribe(_ => isReload = false);
+                weapon.Fire();
             }
 
             
@@ -91,9 +88,13 @@ namespace Defender
         {
 
         }
-
         // --------------------------------------------------------------------------------
-
+        // Public Function
+        public TeamType GetTeam() => m_Team;
+        public DefenderArena GetArena() => arena;
+        
+        // --------------------------------------------------------------------------------
+        // Private Function
         private void OnCollisionEnter(Collision c)
         {
             if (c.gameObject.CompareTag("Wall"))
@@ -101,18 +102,6 @@ namespace Defender
                 rb.velocity = Vector3.zero;
             }
             Debug.Log("Hit the wall");
-        }
-        private UniRx.IObservable<Unit> OnSwitchShield()
-        {
-            return Observable.Create<Unit>
-            (
-                _observer => 
-                {
-                    IDisposable dis = null;
-                    _observer.OnNext(Unit.Default);
-                    return Disposable.Create(() => dis.Dispose());
-                }
-            );
         }
     }
 }

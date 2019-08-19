@@ -5,8 +5,10 @@ TagManager:
   serializedVersion: 2
   tags:
   - Wall
-  - Bullet
   - Shield
+  - BulletA
+  - BulletB
+  - Goal
   layers:
   - Default
   - TransparentFX
