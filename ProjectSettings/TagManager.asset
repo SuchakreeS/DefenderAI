@@ -9,6 +9,13 @@ TagManager:
   - BulletA
   - BulletB
   - Goal
+  - Bullet
+  - ShieldA
+  - ShieldB
+  - GoalA
+  - GoalB
+  - AgentA
+  - AgentB
   layers:
   - Default
   - TransparentFX

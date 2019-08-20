@@ -1,7 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Defender;
 
 namespace Defender
 {
@@ -14,15 +13,38 @@ namespace Defender
         {
             team = _agent.GetTeam();
             arena = _agent.GetArena();
+            if(team == TeamType.A)
+            {
+                gameObject.tag = "BulletA";
+            }
+            else if(team == TeamType.B)
+            {
+                gameObject.tag = "BulletB";
+            }
         }
 
         public void OnTriggerEnter(Collider col)
         {
             if(col.gameObject.CompareTag("Goal"))
             {
-                Debug.Log("Hit Goal");
                 arena.AddScore(team);
                 Destroy(gameObject);
+            }
+            else if (col.gameObject.CompareTag("Shield"))
+            {
+                Destroy(gameObject);
+            }
+        }
+        
+        private void SetBulletTag()
+        {
+            if(team == TeamType.A)
+            {
+                gameObject.tag = "BulletA";
+            }
+            else if(team == TeamType.B)
+            {
+                gameObject.tag = "BulletB";
             }
         }
     }

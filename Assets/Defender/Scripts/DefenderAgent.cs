@@ -7,15 +7,11 @@ using System;
 
 namespace Defender
 {
-    
-
     public class DefenderAgent : Agent
     {
         
         [SerializeField] TeamType m_Team;
         [SerializeField] GameObject m_ShieldObject;
-        [SerializeField] Transform m_BulletTransform;
-        [SerializeField] GameObject m_BulletStack;
         [SerializeField] DefenderArena m_DefenderArena;
         private DefenderAcademy academy;
         private DefenderArena arena;
@@ -24,8 +20,13 @@ namespace Defender
         private bool isShield;
         private bool isSwitchShield;
         private WeaponController weapon;
-        private IDisposable reloadWeaponDisposable;
         private IDisposable switchShieldDisposable;
+        private RayPerception rayPer;
+        private TeamType randomTeam;
+    
+        private float[] rayAngles = { 0f, 45f, 90f, 135f, 180f, 110f, 70f };
+        private string[] detectableObjectsA = { "AgentB", "GoalB", "BulletB", "Wall"};
+        private string[] detectableObjectsB = { "AgentA", "GoalA", "BulletA", "Wall"};
         
         // -------------------------------------------------------------------------------
         // Override Function
@@ -34,14 +35,26 @@ namespace Defender
             academy = FindObjectOfType<DefenderAcademy>();
             arena = m_DefenderArena;
             rb = transform.GetComponent<Rigidbody>();
+            rayPer = GetComponent<RayPerception3D>();
             isReload = false;
             isShield = m_ShieldObject.gameObject.activeSelf;
             isSwitchShield = false;
             weapon = gameObject.GetComponent<WeaponController>();
+            weapon.Init();
         }
         public override void CollectObservations()
         {
-
+            float rayDistance = 10f;
+            string[] detectableObjects = {};
+            if (m_Team == TeamType.A)
+            {
+                detectableObjects = detectableObjectsA;
+            }
+            else if (m_Team == TeamType.B)
+            {
+                detectableObjects = detectableObjectsB;
+            }
+            AddVectorObs(rayPer.Perceive(rayDistance, rayAngles, detectableObjects, 0f, 0f));
         }
         
         public override void AgentAction(float[] vectorAction, string textAction)
@@ -86,8 +99,9 @@ namespace Defender
 
         public override void AgentReset()
         {
-
+            weapon.Refresh();
         }
+
         // --------------------------------------------------------------------------------
         // Public Function
         public TeamType GetTeam() => m_Team;
@@ -101,7 +115,6 @@ namespace Defender
             {
                 rb.velocity = Vector3.zero;
             }
-            Debug.Log("Hit the wall");
         }
     }
 }

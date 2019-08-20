@@ -26,19 +26,20 @@ public class WeaponController : MonoBehaviour
     // --------------------------------------------------------------------------------------------------
     private void Start()
     {
-        _isReload = false;
-        _isFiring = false;
-
-        // Create Bullet Stack
-        _BulletStack = new GameObject("BulletStack");
-        _BulletStack.transform.SetParent(transform);
-
-        _Agent = gameObject.GetComponent<DefenderAgent>();
 
     }
 
     // --------------------------------------------------------------------------------------------------
     // Public Function
+    public void Init()
+    {
+        _isReload = false;
+        _isFiring = false;
+
+        Refresh();
+
+        _Agent = gameObject.GetComponent<DefenderAgent>();
+    }
     public void Fire()
     {
         if (!_isFiring)
@@ -66,6 +67,19 @@ public class WeaponController : MonoBehaviour
         var bulletRb = bulletObject.gameObject.GetComponent<Rigidbody>();
 
         bulletRb.AddForce(bulletObject.transform.forward * m_BulletSpeed, ForceMode.VelocityChange);
+    }
+    [ContextMenu("Destroy Stack")]
+    public void Refresh()
+    {
+        _isReload = false;
+        _isFiring = false;
+        
+        if(_BulletStack != null)
+        {
+            Destroy(_BulletStack.gameObject);
+        }
+        _BulletStack = new GameObject("BulletStack");
+        _BulletStack.transform.SetParent(transform);
     }
     // --------------------------------------------------------------------------------------------------
     

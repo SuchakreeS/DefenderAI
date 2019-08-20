@@ -11,7 +11,6 @@ namespace Defender
         A,
         B
     }
-
     public static class DefenderUtilities
     {
         public static TeamType GetOppositeTeam(TeamType _team)
@@ -22,7 +21,11 @@ namespace Defender
                 return TeamType.A;
             else
                 return TeamType.None;
-        } 
+        }
+        public static TeamType RandomTeam(this TeamType _teamType)
+        {
+            return (TeamType) UnityEngine.Random.Range(1, 3);
+        }
     }
 }
 
