@@ -9,8 +9,6 @@ namespace Defender
     [RequireComponent(typeof(Animator))]
     public class ShieldAnimation : MonoBehaviour
     {
-        private Action<string> OnAnimationStart;
-        private Action<string> OnAnimationEnd;
         private const string _ANIMATION_FADE_IN = "Shield_Fade_In";
         private const string _ANIMATION_FADE_OUT = "Shield_Fade_Out";
         private const string _TRIGGER_FADE_IN = "Trigger.Fade.In";
@@ -23,21 +21,20 @@ namespace Defender
         private IDisposable switchShieldDisposable;
         // ----------------------------------------------------------------------------------
         public bool IsOpen;
-        public void AnimationStart(string _name) => OnAnimationStart?.Invoke(_name);
-        public void AnimationEnd(string _name) => OnAnimationEnd?.Invoke(_name);
+        public float speed;
         // ----------------------------------------------------------------------------------
         public void Init()
         {
             animator = GetComponent<Animator>();
             isSwitching = false;
-            IsOpen = gameObject.activeSelf;
+            IsOpen = GetComponent<Collider>().enabled;
             
         }
         public void SwitchShield()
         {
             if(!isSwitching)
             {
-                Debug.Log("Switching");
+                isSwitching = true;
                 IsOpen = !IsOpen;
                 SetTrigger(IsOpen ? _TRIGGER_FADE_IN : _TRIGGER_FADE_OUT);
             }
@@ -54,12 +51,13 @@ namespace Defender
         {
             
             GetComponent<Collider>().enabled = IsOpen;
-            isSwitching = true;
+            
         }
         private void OnSwitchingEnd()
         {
             isSwitching = false;
             GetComponent<Collider>().enabled = IsOpen;
+            
         }
     }
 }
