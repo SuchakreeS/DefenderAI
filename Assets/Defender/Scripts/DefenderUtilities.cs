@@ -11,6 +11,12 @@ namespace Defender
         A,
         B
     }
+    public enum AttackAction
+    {
+        None,
+        Fire,
+        Shield
+    }
     public static class DefenderUtilities
     {
         public static TeamType GetOppositeTeam(TeamType _team)

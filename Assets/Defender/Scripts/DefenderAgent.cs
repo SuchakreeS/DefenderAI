@@ -17,12 +17,13 @@ namespace Defender
         private DefenderArena arena;
         private Rigidbody rb;
         private bool isReload;
-        private bool isShield;
-        private bool isSwitchShield;
         private WeaponController weapon;
+        private ShieldAnimation shield;
         private IDisposable switchShieldDisposable;
         private RayPerception rayPer;
         private TeamType randomTeam;
+        private AttackAction previousAtt;
+        private AttackAction currentAtt;
     
         private float[] rayAngles = { 0f, 45f, 90f, 135f, 180f, 110f, 70f };
         private string[] detectableObjectsA = { "AgentB", "GoalB", "BulletB", "Wall"};
@@ -37,10 +38,10 @@ namespace Defender
             rb = transform.GetComponent<Rigidbody>();
             rayPer = GetComponent<RayPerception3D>();
             isReload = false;
-            isShield = m_ShieldObject.gameObject.activeSelf;
-            isSwitchShield = false;
             weapon = gameObject.GetComponent<WeaponController>();
             weapon.Init();
+            shield = m_ShieldObject.GetComponent<ShieldAnimation>();
+            shield.Init();
         }
         public override void CollectObservations()
         {
@@ -68,7 +69,7 @@ namespace Defender
         {
             Vector3 direction = Vector3.zero;
             int moveAction = Mathf.FloorToInt(act[0]);
-            int battleAction = Mathf.FloorToInt(act[1]);
+            currentAtt = (AttackAction) Mathf.FloorToInt(act[1]);
 
             // Move action
             if(moveAction == 1)
@@ -77,26 +78,20 @@ namespace Defender
                 direction = transform.right * -1;
             
             // Battle action
-            if(battleAction == 1 && !isSwitchShield)
+            if(currentAtt == AttackAction.Shield)
             {
-                isSwitchShield = true;
-                isShield = !isShield;
-                m_ShieldObject.gameObject.SetActive(isShield);
-                
-                switchShieldDisposable?.Dispose();
-                switchShieldDisposable = Observable.Timer(TimeSpan.FromSeconds(0.2)).Subscribe(_ => isSwitchShield = false);
+                shield.SwitchShield();
             }
-            else if (battleAction == 2 && !isShield)
+            else if (currentAtt == AttackAction.Fire && !shield.IsOpen)
             {
                 weapon.Fire();
             }
-
-            
             // Final action
             rb.AddForce(direction * academy.moveSpeed, ForceMode.VelocityChange);
             rb.velocity = Vector3.ClampMagnitude(rb.velocity, academy.maxMoveSpeed);
-        }
 
+            previousAtt = currentAtt;
+        }
         public override void AgentReset()
         {
             weapon.Refresh();

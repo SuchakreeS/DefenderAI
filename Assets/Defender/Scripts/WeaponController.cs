@@ -44,15 +44,10 @@ public class WeaponController : MonoBehaviour
     {
         if (!_isFiring)
         {
-            Debug.Log("Firing");
             _isFiring = true;
             SpawnBullet();
             _FiringDisposable?.Dispose();
             _FiringDisposable = Observable.Timer(TimeSpan.FromSeconds(m_FireRate)).Subscribe(_ => _isFiring = false);
-        }
-        else
-        {
-            Debug.Log("Wait for firing");
         }
     }
     // --------------------------------------------------------------------------------------------------
