@@ -30,13 +30,24 @@ namespace Defender
             IsOpen = GetComponent<Collider>().enabled;
             
         }
-        public void SwitchShield()
+        public void OpenShield()
         {
-            if(!isSwitching)
+            if(!IsOpen && !isSwitching)
             {
+                Debug.Log("Open");
                 isSwitching = true;
-                IsOpen = !IsOpen;
-                SetTrigger(IsOpen ? _TRIGGER_FADE_IN : _TRIGGER_FADE_OUT);
+                IsOpen = true;
+                SetTrigger(_TRIGGER_FADE_IN);
+            }
+        }
+        public void CloseShield()
+        {
+            if(!isSwitching && IsOpen)
+            {
+                Debug.Log("Close");
+                isSwitching = true;
+                IsOpen = false;
+                SetTrigger(_TRIGGER_FADE_OUT);
             }
         }
         private void SetTrigger(string _trigger)

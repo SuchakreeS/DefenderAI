@@ -45,7 +45,7 @@ namespace Defender
         }
         public override void CollectObservations()
         {
-            float rayDistance = 10f;
+            float rayDistance = 5f;
             string[] detectableObjects = {};
             if (m_Team == TeamType.A)
             {
@@ -80,11 +80,15 @@ namespace Defender
             // Battle action
             if(currentAtt == AttackAction.Shield)
             {
-                shield.SwitchShield();
+                shield.OpenShield();
             }
             else if (currentAtt == AttackAction.Fire && !shield.IsOpen)
             {
                 weapon.Fire();
+            }
+            else
+            {
+                shield.CloseShield();
             }
             // Final action
             rb.AddForce(direction * academy.moveSpeed, ForceMode.VelocityChange);

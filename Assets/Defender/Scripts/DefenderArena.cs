@@ -13,6 +13,7 @@ namespace Defender
         [SerializeField] TextMeshProUGUI m_ScoreBText;
         [SerializeField] DefenderAgent AgentA;
         [SerializeField] DefenderAgent AgentB;
+        [SerializeField] bool RandomTeamOn;
         public bool isPlaying;
         public TeamType winTeam;
         public IntReactiveProperty scoreA = new IntReactiveProperty();
@@ -23,7 +24,7 @@ namespace Defender
         private int MaxScore;
         private TransformKeeping AgentATransform;
         private TransformKeeping AgentBTransform;
-        private TeamType randomTeam;
+        private TeamType focusTeam;
 
         public struct TransformKeeping
         {
@@ -53,7 +54,7 @@ namespace Defender
             MaxScore = (int) academy.resetParameters["MaxScore"];
             AgentATransform = new TransformKeeping(AgentA.transform);
             AgentBTransform = new TransformKeeping(AgentB.transform);
-            randomTeam = randomTeam.RandomTeam();
+            focusTeam = RandomTeamOn ? focusTeam.RandomTeam() : TeamType.A;
             // Score Notification
             scoreA.Subscribe
             (
@@ -92,7 +93,7 @@ namespace Defender
             AgentATransform.Transfer(AgentA.transform);
             AgentBTransform.Transfer(AgentB.transform);
             MaxScore = (int) academy.resetParameters["MaxScore"];
-            randomTeam = randomTeam.RandomTeam();
+            focusTeam = RandomTeamOn ? focusTeam.RandomTeam() : TeamType.A;
             time = 0f;
             winTeam = TeamType.None;
 
@@ -145,19 +146,19 @@ namespace Defender
         }
         private void SetReward(TeamType _team, float _reward)
         {
-            if(randomTeam == _team && randomTeam == TeamType.A)
+            if(focusTeam == _team && focusTeam == TeamType.A)
             {
                 AgentA.SetReward(_reward);
             }
-            else if(randomTeam == _team && randomTeam == TeamType.B)
+            else if(focusTeam == _team && focusTeam == TeamType.B)
             {
                 AgentB.SetReward(_reward);
             }
-            else if(randomTeam != _team && randomTeam == TeamType.A)
+            else if(focusTeam != _team && focusTeam == TeamType.A)
             {
                 AgentA.SetReward(-_reward);
             }
-            else if(randomTeam != _team && randomTeam == TeamType.B)
+            else if(focusTeam != _team && focusTeam == TeamType.B)
             {
                 AgentB.SetReward(-_reward);
             }
