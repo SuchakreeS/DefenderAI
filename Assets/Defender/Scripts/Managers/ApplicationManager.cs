@@ -12,6 +12,7 @@ namespace Defender
         public const string SCENE_PRELOAD_NAME = "00.preload";
         public const string SCENE_SPLASH_NAME = "01.splash";
         public const string SCENE_MAIN_MENU_NAME = "02.main.menu";
+        public const string SCENE_PLAYER_NAME = "03.player";
         private void Start()
         {
             // Preload
